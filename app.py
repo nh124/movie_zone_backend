@@ -23,7 +23,7 @@ CORS(app)
 load_dotenv(find_dotenv())
 app = flask.Flask(__name__)
 from datetime import timedelta
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('LOCAL_DATABASE_URL')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SECRET_KEY'] = os.getenv('secretKey')
 db = SQLAlchemy(app)
 app.config['JWT_SECRET_KEY'] = 'your_secret_key'  # Replace with a strong secret key
