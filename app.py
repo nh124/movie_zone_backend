@@ -1,6 +1,5 @@
 """ APP Class"""
 import os
-import random
 import flask
 from flask_cors import CORS, cross_origin
 from flask_sqlalchemy import SQLAlchemy
@@ -8,13 +7,12 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from dotenv import find_dotenv, load_dotenv
 from flask_wtf import FlaskForm
-from flask import jsonify, request, session
+from flask import jsonify, request
 from flask_wtf.csrf import CSRFProtect
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
 from jose import JWTError, jwt
 from twilio.rest import Client
 from movie import trendingMoviesOfTheYear
-import sshtunnel
 from urllib.parse import urlparse
 
 
