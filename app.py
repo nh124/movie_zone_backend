@@ -14,7 +14,7 @@ from jose import JWTError, jwt
 from twilio.rest import Client
 from movie import trendingMoviesOfTheYear
 from urllib.parse import urlparse
-
+from datetime import datetime
 
 
 app = flask.Flask(__name__)
@@ -68,13 +68,13 @@ class Comments(db.Model):
     comment = db.Column(db.String(400), nullable=False)
     like = db.Column(db.Integer, nullable=True, default=0)
     dislike = db.Column(db.Integer, nullable=True, default=0)
+    date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
 
 class UserList(db.Model):
     id = db.Column(db.Integer, primary_key=True)# pylint: disable=trailing-whitespace
     email =  db.Column(db.String(100), nullable=False)
     favorites = db.Column(db.String(200), nullable=True) 
-    bookmarked = db.Column(db.String(200), nullable=True)
 
 
 class Expired_token(db.Model):
@@ -182,7 +182,7 @@ def add_comment():
 def add_to_user_list():
     if request.is_json:
         data = request.json
-        if data['favorite'] == None or data['bookmark'] == None:
+        if data['favorite'] == None:
             return jsonify({"error": "Null data is not excepted"}), 404
         current_user = get_jwt_identity()
         user_list_exists = UserList.query.filter_by(email=current_user).first()
@@ -191,7 +191,6 @@ def add_to_user_list():
         new_userlist = UserList(
             email=current_user,
             favorites=data['favorite'],
-            bookmarked=data['bookmark'],
         )
         db.session.add(new_userlist)
         db.session.commit()
@@ -242,7 +241,6 @@ def update_user_list():
         if not user_list_exists:
             return jsonify({"error": "User List does not exist"}), 404
         user_list_exists.favorites = user_list_exists.favorites + "," + data['favorite'] if user_list_exists.favorites else (user_list_exists.favorites + data['favorite'])
-        user_list_exists.bookmarked = user_list_exists.bookmarked + "," + data['bookmark'] if user_list_exists.bookmarked else (user_list_exists.bookmarked + data['bookmark'])
         db.session.commit()
         return jsonify({"message": "User List Updated  Successful"}), 201
     else:
@@ -263,14 +261,7 @@ def delete_from_user_list():
         fav_list = user_list_exists.favorites.split(',')
         fav_list.remove(fav)
         updated_fav = ",".join(fav_list)
-
-        bookmarks = data['bookmark']
-        bookmarks_list = user_list_exists.bookmarked.split(',')
-        bookmarks_list.remove(bookmarks)
-        updated_bookmark = ",".join(bookmarks_list)
-
         user_list_exists.favorites = updated_fav;
-        user_list_exists.bookmarked = updated_bookmark;
         db.session.commit()
         return jsonify({"message": "Deleted from user List Successful"}), 201
     else:
@@ -292,6 +283,7 @@ def get_comments(movieId):
             'like': comment.like,
             'dislike': comment.dislike,
             'name': comment.name,
+            'date': comment.date,
         }
         comments_list.append(comment_dict)
 
@@ -458,8 +450,5 @@ def expired_token():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(
-        host=os.getenv('IP', '0.0.0.0'),
-        port=int(os.getenv('PORT', 8080)),
-        debug=True
-    )
+    port = int(os.getenv('PORT', 5000))
+    app.run(debug=True, host='0.0.0.0', port=port)
